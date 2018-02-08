@@ -31,7 +31,7 @@ reshape_MENA <- function(dataframe){
   wide$GDPUSC_PK <- wide$GDPUSC/wide$POPTOTT
   WIDE <- dcast(setDT(wide), Location.code + IsMetro + Metro + Country ~ Year, 
                 value.var = var.list)
-  output <- list(wide, WIDE)
+  output <- list(wide, WIDE, var.list)
   return(output)
 }
 

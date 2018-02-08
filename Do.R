@@ -6,9 +6,26 @@ source("Func.R")
 test <- reshape_MENA(MENA)
 MENA_long <- test[[1]]
 MENA_wide <- test[[2]]
+var.list <- test[[3]]
 
 write.csv(MENA_long, "../data for analysis/MENA_long.csv")
-write.csv(MENA_wide, "../data for analysis/MENA_wide.csv")
+
+var.list <- c("GDPUSC", "GDPPPP", "EMPTOT", "POPTOTT", "GDPUSC_PK")
+
+temp <- MENA_wide
+
+for (var in var.list){
+  tryCatch({
+    temp <- YOY(var, temp)
+    temp <- CAGR(temp, var, 2000, 2016)
+    temp <- CAGR(temp, var, 2009, 2016)
+    temp <- CAGR(temp, var, 2014, 2016)
+  },
+  error = function(e) e
+  )
+}
+write.csv(temp, "../data for analysis/MENA_wide.csv")
+
 
 # World master spreadsheet -------------------------------------------------------------------
 
