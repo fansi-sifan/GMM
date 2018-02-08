@@ -62,3 +62,15 @@ group_summary <- function(dataframe, ...) dataframe %>%
   group_by_(...) %>% mutate(count = 1)%>%
   summarise_at(c("emptot_2014","gdpppp_2014","gdpusc_2014","poptott_2014",
                  "emptot_2016","gdpppp_2016","gdpusc_2016","poptott_2016","count"), sum,na.rm = TRUE)
+
+
+# generate city-region comparison -----------------------------------------
+
+city_region <- function(dt, ...) dt%>%
+  group_by_(...) %>%
+  summarise_if(is.numeric,sum) %>%
+  mutate(gdpusc_pk_16_0 = gdpusc_2016_0/poptott_2016_0,
+         gdpusc_pk_16_1 = gdpusc_2016_1/poptott_2016_1,
+         share_gdpusc_14_16 = gdpusc_2014_2016_1/gdpusc_2014_2016_0,
+         share_emptot_14_16 = emptot_2014_2016_1/emptot_2014_2016_0,
+         share_poptott_16 = poptott_2016_1/poptott_2016_0)

@@ -1,5 +1,5 @@
-source("Load.R")
-source("Func.R")
+source("V:/Sifan/Global Metro Monitor V/Load.R")
+source("V:/Sifan/Global Metro Monitor V/Func.R")
 
 # MENA dataset ------------------------------------------------------------
 
@@ -62,8 +62,8 @@ for (var in c("emptot","gdpusc","gdpusc_pk", "poptott")){
   region_compare <- CAGR(region_compare, var , 2014, 2016)
 }
 
-region_compare_wide <- dcast(setDT(region_compare), country  ~ ismetro, 
-                             value.var = c("CAGR_emptot_2014_2016","CAGR_gdpusc_pk_2014_2016","count"))
+# region_compare_wide <- dcast(setDT(region_compare), country  ~ ismetro, 
+#                              value.var = c("CAGR_emptot_2014_2016","CAGR_gdpusc_pk_2014_2016","count"))
 
 region_compare$gdpusc_2014_2016 <- region_compare$gdpusc_2016 - region_compare$gdpusc_2014
 region_compare$emptot_2014_2016 <- region_compare$emptot_2016 - region_compare$emptot_2014
@@ -72,17 +72,10 @@ country_equality <- dcast(setDT(region_compare), country + region + incomegroup 
                           value.var = c("gdpusc_2014", "gdpusc_2016", "emptot_2014","emptot_2016",
                                         "gdpusc_2014_2016","emptot_2014_2016","poptott_2016"))
 
-region_equality <- country_equality %>% group_by(region) %>%
-  summarise_if(is.numeric,sum) %>%
-  mutate(share_gdpusc_14_16 = gdpusc_2014_2016_1/gdpusc_2014_2016_0,
-         share_emptot_14_16 = emptot_2014_2016_1/emptot_2014_2016_0,
-         share_poptott_16 = poptott_2016_1/poptott_2016_0)
 
-income_equality <- country_equality %>% group_by(incomegroup) %>%
-  summarise_if(is.numeric,sum) %>%
-  mutate(share_gdpusc_14_16 = gdpusc_2014_2016_1/gdpusc_2014_2016_0,
-         share_emptot_14_16 = emptot_2014_2016_1/emptot_2014_2016_0,
-         share_poptott_16 = poptott_2016_1/poptott_2016_0)
+
+region_equality <- city_region(country_equality, "region")
+income_equality <- city_region(country_equality, "incomegroup")
 
 inequality <- bind_rows(region_equality, income_equality)
 
