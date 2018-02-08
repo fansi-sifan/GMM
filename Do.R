@@ -62,8 +62,8 @@ for (var in c("emptot","gdpusc","gdpusc_pk", "poptott")){
   region_compare <- CAGR(region_compare, var , 2014, 2016)
 }
 
-# region_compare_wide <- dcast(setDT(region_compare), country  ~ ismetro, 
-#                              value.var = c("CAGR_emptot_2014_2016","CAGR_gdpusc_pk_2014_2016","count"))
+region_compare_wide <- dcast(setDT(region_compare), country  ~ ismetro, 
+                            value.var = c("CAGR_emptot_2014_2016","CAGR_gdpusc_pk_2014_2016","count"))
 
 region_compare$gdpusc_2014_2016 <- region_compare$gdpusc_2016 - region_compare$gdpusc_2014
 region_compare$emptot_2014_2016 <- region_compare$emptot_2016 - region_compare$emptot_2014
@@ -72,12 +72,19 @@ country_equality <- dcast(setDT(region_compare), country + region + incomegroup 
                           value.var = c("gdpusc_2014", "gdpusc_2016", "emptot_2014","emptot_2016",
                                         "gdpusc_2014_2016","emptot_2014_2016","poptott_2016"))
 
-
-
 region_equality <- city_region(country_equality, "region")
 income_equality <- city_region(country_equality, "incomegroup")
 
-inequality <- bind_rows(region_equality, income_equality)
+# create other regional cuts
+# China, US, Europe, MENA
+
+adj_region_equality <- country_equality %>%
+  mutate(region_adj = ifelse(country == "China"|country == "United States", as.character(country),""))%>%
+  mutate(region_adj = ifelse(grepl("Europe", region),"Europe",region_adj ))
+
+adj_region_equality <- city_region(adj_region_equality, "region_adj")
+
+inequality <- bind_rows(region_equality, income_equality, adj_region_equality)
 
 write.csv(inequality, "result/inequality.csv")
 
@@ -124,6 +131,26 @@ world <- world_group %>%
 
 summary <- bind_rows(regional_summary, world)
 write.csv(summary, 'result/summary.csv')
+
+
+
+
+# Sandbox -----------------------------------------------------------------
+
+# Mid-sized?
+
+library('ggplot2')
+
+world_cities <- filter(world_group, ismetro == 1)
+
+ggplot(data = world_cities, mapping = aes(x = poptott_2016, color = incomegroup)) +
+  geom_freqpoly()
+
+ggplot(data = world_cities, mapping = aes(x = region, y = poptott_2016)) + 
+  geom_boxplot()
+
+ggplot(data = world_cities, mapping = aes(x = region, y = gdpusc_2016)) + 
+  geom_boxplot()
 
 
 # GDP growth share =============================================
