@@ -1,5 +1,5 @@
-source("V:/Sifan/Global Metro Monitor V/Load.R")
-source("V:/Sifan/Global Metro Monitor V/Func.R")
+
+source("Func.R")
 
 # MENA dataset ------------------------------------------------------------
 
@@ -53,7 +53,7 @@ write.csv(temp, "World_wide.csv")
 
 # Within region comparison =====================================================
 
-world_group <- read.csv("../Max/Index/GMM17_world_wide_groups.csv")
+world_group <- read.csv("source/GMM17_world_wide_groups.csv")
 region_compare <- group_summary(world_group, "country", "ismetro", "region", "incomegroup")
 region_compare$gdpusc_pk_2014 <- region_compare$gdpusc_2014/region_compare$poptott_2014
 region_compare$gdpusc_pk_2016 <- region_compare$gdpusc_2016/region_compare$poptott_2016
@@ -136,6 +136,31 @@ write.csv(summary, 'result/summary.csv')
 
 
 # Sandbox -----------------------------------------------------------------
+
+
+# Asian Megacities --------------------------------------------------------------
+
+library('dplyr')
+
+EMGAsian_cities <- world_group %>% 
+  filter(region == "Emerging Asia-Pacific") %>% 
+  filter(ismetro == 1) %>%
+  mutate (megacity = ifelse(poptott_2017 > 10000, 1, 0))
+
+EMGAsian_countries <- world_group %>% 
+  filter(region == "Emerging Asia-Pacific") %>% 
+  filter(ismetro == 0)
+
+EMGAsian <- bind_rows(EMGAsian_cities, EMGAsian_countries)
+
+EMGAsian_summary <- EMGAsian %>%
+  group_by(megacity, country) %>%
+  summarise_if(is.numeric, sum) %>%
+  select( megacity, country, contains("2000" ), contains( "2007"  ), contains("2014"), contains("2017"), 
+          -contains("cagr"), -contains('yoy'), -contains('pk'), -contains('erp')) %>%
+  mutate(gdpusc_short = gdpusc_2017 - gdpusc_2014,
+         gdpusc_med = gdpusc_2017 - gdpusc_2007,
+         gdpusc_long = gdpusc_2017 - gdpusc_2000)
 
 # Mid-sized?
 

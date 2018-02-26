@@ -1,3 +1,7 @@
+library('dplyr')
+library('tidyr')
+library('reshape2')
+library('data.table')
 
 # Reshape data, create new variables
 reshape <- function(dataframe){
