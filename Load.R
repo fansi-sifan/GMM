@@ -1,10 +1,7 @@
 library('readxl')
-library('dplyr')
-library('tidyr')
-library('reshape2')
-library('data.table')
 
-setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan")
+
+#setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan")
 
 master <- read_xlsx("../Original data/GMM17 database v3.xlsx")
 group <- read.csv("source/GMM17 groups.csv")
