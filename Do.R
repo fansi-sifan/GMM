@@ -1,4 +1,6 @@
 
+setwd("V:/Sifan/Global Metro Monitor V")
+
 source("Func.R")
 
 # MENA dataset ------------------------------------------------------------
@@ -34,6 +36,48 @@ temp <- Master_wide[[1]]
 var.list <- Master_wide[[2]]
 
 temp <- select(temp, -contains("EMPEPRIV"), - contains("EMPETOT"))
+
+metros_wide <- temp %>% left_join(group, by = c( "Location.code" = "locationcode")) %>%
+  filter(!is.na(IsMetro))
+
+countries_wide <- metros_wide %>% 
+  group_by(IsMetro, Country, region, incomegroup) %>%
+  summarise_if(is.numeric, sum) %>%
+ 
+regions_wide <- metros_wide %>%
+  group_by(IsMetro, region) %>%
+  summarise_if(is.numeric, sum)
+
+income_wide <- metros_wide %>%
+  group_by(IsMetro, incomegroup) %>%
+  summarise_if(is.numeric, sum)
+
+region <- rbind(regions_wide, income_wide)
+write.csv(region, "result/region_gdppk.csv")
+
+countries_gdppk <- bind_cols(countries_wide[,1:4],countries_wide[,5:22],countries_wide[,59:76])
+var.list <- names(countries_gdppk)[5:40]
+test <- dcast(setDT(countries_gdppk), Country + region + incomegroup ~ IsMetro, value.var = var.list)
+# calculate rest of the country = nation-cities
+
+cities <- test %>% select(contains("_1"))
+nation <- test %>% select(contains("_0"))
+rest <- nation - cities
+names(rest) <-gsub("_0", "_rest", names(rest))
+
+# combine subsets
+countries_gdppk <- bind_cols(test[,1:3],cities[,1:18]/cities[,19:36],
+                             rest[,1:18]/rest[,19:36],
+                             nation[,1:18]/nation[,19:36])
+names(countries_gdppk) <-gsub("GDPUSC", "GDPPK", names(countries_gdppk))
+
+# calcuate metro/rest gdppk ratio
+ratio <- select(countries_gdppk,contains("_1"))/ select(countries_gdppk, contains("_rest"))
+names(ratio) <- gsub("GDPPK", "r_GDPPK", names(ratio))
+countries_gdppk <- bind_cols(countries_gdppk, ratio)
+                             
+# write to result
+write.csv(countries_gdppk, "result/countries_gdppk.csv")
 
 for (var in var.list){
   tryCatch({
@@ -140,7 +184,7 @@ write.csv(summary, 'result/summary.csv')
 
 # Asian Megacities --------------------------------------------------------------
 
-library('dplyr')
+world_group <- read.csv("source/GMM17_world_wide_groups.csv")
 
 EMGAsian_cities <- world_group %>% 
   filter(region == "Emerging Asia-Pacific") %>% 
@@ -156,11 +200,12 @@ EMGAsian <- bind_rows(EMGAsian_cities, EMGAsian_countries)
 EMGAsian_summary <- EMGAsian %>%
   group_by(megacity, country) %>%
   summarise_if(is.numeric, sum) %>%
-  select( megacity, country, contains("2000" ), contains( "2007"  ), contains("2014"), contains("2017"), 
-          -contains("cagr"), -contains('yoy'), -contains('pk'), -contains('erp')) %>%
-  mutate(gdpusc_short = gdpusc_2017 - gdpusc_2014,
-         gdpusc_med = gdpusc_2017 - gdpusc_2007,
-         gdpusc_long = gdpusc_2017 - gdpusc_2000)
+  select(megacity, country, contains("emptot"), contains('gdpusc'), contains('poptot'),
+         -contains('pk'), -contains('yoy'), -contains('cagr')) %>% ungroup() %>%
+  mutate(megacity = replace(megacity, is.na(megacity), "Nation"))
+  
+
+write.csv(EMGAsian_summary, 'V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/asian_mega.csv')
 
 # Mid-sized?
 
@@ -199,7 +244,6 @@ share <- temp %>%
   select(Location.code, Share_PK_2009_2016)
 
 world_analysis <- left_join(world_analysis, share, by = "Location.code")
-
 
 
 

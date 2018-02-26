@@ -7,8 +7,8 @@ library('data.table')
 reshape <- function(dataframe){
   names(dataframe) <- gsub(" ", ".", names(dataframe))
   var.list <- unique(dataframe$Variable.code)
-  var.list <- append(var.list, "EPratio")
-  var.list <- append(var.list, "GDPUSC_PK")
+#  var.list <- append(var.list, "EPratio")
+#  var.list <- append(var.list, "GDPUSC_PK")
   var.list <- var.list[2:length(var.list)]
   long <- gather(dataframe, Year, Value, '2000':'2017', factor_key = TRUE)
   wide <- spread(select(long, -Series.mnemonic, -Type, -Variable.name, - Major, - Units, - Currency), 
