@@ -207,6 +207,40 @@ EMGAsian_summary <- EMGAsian %>%
 
 write.csv(EMGAsian_summary, 'V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/asian_mega.csv')
 
+
+
+# world megacities --------------------------------------------------------
+
+
+world_group <- read.csv("source/GMM17_world_wide_groups.csv")
+
+megacities <- world_group %>% 
+  filter(ismetro == 1) %>%
+  mutate (megacity = ifelse(poptott_2017 > 10000, 1, 0))
+
+all_countries <- world_group %>% 
+  filter(ismetro == 0)
+
+megacities <- bind_rows(megacities, all_countries)
+
+megacities <- megacities %>%
+  group_by(megacity, country) %>%
+  summarise_if(is.numeric, sum) %>%
+  select(megacity, country, contains("emptot"), contains('gdpusc'), contains('poptot'),
+         -contains('pk'), -contains('yoy'), -contains('cagr')) %>% ungroup() %>%
+  mutate(megacity = replace(megacity, is.na(megacity), "Nation"))
+
+megacities_summary <- megacities %>% ungroup() %>%
+  filter(country != "World") %>%
+  group_by(megacity) %>%
+  summarise_if(is.numeric, sum)
+
+megacities_summary <- bind_rows(megacities_summary, megacities)
+
+write.csv(megacities_summary, 'V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/megacities_summary.csv')
+
+
+
 # Mid-sized?
 
 library('ggplot2')
