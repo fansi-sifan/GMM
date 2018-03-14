@@ -1,5 +1,4 @@
 library('dplyr')
-library('tidyverse')
 library('reshape2')
 library('data.table')
 
@@ -57,7 +56,6 @@ group_summary <- function(dataframe, metro, ...) {
     summarise_if(is.numeric, sum, na.rm = TRUE)
 }
 
-Region <- group_summary(GMM17,0, "region")
 
 # generate city-region comparison -----------------------------------------
 
