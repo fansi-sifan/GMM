@@ -1,0 +1,54 @@
+---
+title: "GMM report"
+author: "Sifan Liu"
+date: "2018/3/13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document for Global Metro Monitor 2018 analysis
+
+library('dplyr')
+source('Func', local = TRUE)
+GMM17 <- read.csv("source/GMM17_world_wide_groups.csv")
+
+
+```{r load data}
+head(GMM17)
+```
+
+## Set up scope of analysis
+
+```{r time frame}
+GMM17 <- GMM17 %>%
+  mutate(region_adj = ifelse(country == "China", "China", as.character(region))) %>%
+  select(metro, country, region, region_adj, incomegroup, ismetro,
+         emptot_2000:poptott_2017)
+```
+
+```{r collapse by group}
+#groups <- names(GMM17)[2:6]
+
+Region <- group_summary(GMM17, 1, "region")
+
+#Region <- group_summary(GMM17, 0, "region")
+
+knitr::kable(Region, 'html')
+
+```
+
+
+```{r analysis function}
+test <- GDPPK(test)
+test <- VG(test, "gdpusc", 2006, 2016)
+test <- CAGR(test, "gdppk", 2010, 2016)
+
+knitr::kable(test, 'html')
+
+```
+

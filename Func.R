@@ -1,45 +1,10 @@
 library('dplyr')
-library('tidyr')
+library('tidyverse')
 library('reshape2')
 library('data.table')
 
-# Reshape data, create new variables
-reshape <- function(dataframe){
-  names(dataframe) <- gsub(" ", ".", names(dataframe))
-  var.list <- unique(dataframe$Variable.code)
-#  var.list <- append(var.list, "EPratio")
-#  var.list <- append(var.list, "GDPUSC_PK")
-  var.list <- var.list[2:length(var.list)]
-  long <- gather(dataframe, Year, Value, '2000':'2017', factor_key = TRUE)
-  wide <- spread(select(long, -Series.mnemonic, -Type, -Variable.name, - Major, - Units, - Currency), 
-                 Variable.code, Value)
-  # For Chinese cities, use sum of private emp and tot emp as EMPTOT
-  wide$EMPTOT <- ifelse(is.na(wide$EMPTOT), wide$EMPEPRIV + wide$EMPETOT, wide$EMPTOT)
-  wide$EPratio <- wide$EMPTOT/wide$POPTOTT
-  wide$GDPUSC_PK <- wide$GDPUSC/wide$POPTOTT
-  WIDE <- dcast(setDT(wide), Location.code + IsMetro + Metro + Country ~ Year, 
-                value.var = var.list)
-  output <- list(WIDE,var.list)
-  return(output)
-}
 
-# Reshape data, create new variables
-reshape_MENA <- function(dataframe){
-  names(dataframe) <- gsub(" ", ".", names(dataframe))
-  var.list <- unique(dataframe$Variable.code)
-  var.list <- append(var.list, "GDPUSC_PK")
-  var.list <- var.list[2:length(var.list)]
-  long <- gather(dataframe, Year, Value, '2000':'2017', factor_key = TRUE)
-  wide <- spread(select(long, -Series.mnemonic, -Type, -Variable.name, - Major, - Units, - Currency), 
-                 Variable.code, Value)
-  wide$GDPUSC_PK <- wide$GDPUSC/wide$POPTOTT
-  WIDE <- dcast(setDT(wide), Location.code + IsMetro + Metro + Country ~ Year, 
-                value.var = var.list)
-  output <- list(wide, WIDE, var.list)
-  return(output)
-}
-
-
+# Indicators ----------------------------------------------------------------
 
 # generate YOY growth rate
 YOY <- function(variable, dataframe){
@@ -49,8 +14,19 @@ YOY <- function(variable, dataframe){
   dataframe <- cbind(dataframe, temp)
 }
 
+# generage GDP per capita
 
-# generate CAGR for 3 time periods
+GDPPK <- function(dataframe){
+  gdp <- grep('gdpusc', names(dataframe))[[1]]
+  pop <- grep('poptott', names(dataframe))[[1]]
+  len <- length(grep('gdpusc', names(dataframe)))
+  temp <- dataframe[,gdp:(gdp + len-1)]/dataframe[,pop:(pop + len-1)]
+  names(temp) <- gsub("gdpusc","gdppk",names(temp)) 
+  dataframe <- cbind(dataframe, temp)
+  return(dataframe)
+}
+
+# generate CAGR for different time periods
 
 CAGR <- function(dataframe, variable, start, end){
   start_var <- paste0(variable, "_",start)
@@ -60,13 +36,28 @@ CAGR <- function(dataframe, variable, start, end){
   return(dataframe)
 }
 
+# generate absolute growth for different time periods
+VG <- function(dataframe, variable, start, end){
+  start_var <- paste0(variable, "_",start)
+  end_var <- paste0(variable, "_",end)
+  dataframe$VG <- dataframe[[end_var]]- dataframe[[start_var]]
+  names(dataframe)[length(dataframe)] <- paste("VG",variable, start, end, sep = "_")
+  return(dataframe)
+}
+
+
 
 # generate regional summary
-group_summary <- function(dataframe, ...) dataframe %>% 
-  group_by_(...) %>% mutate(count = 1)%>%
-  summarise_at(c("emptot_2014","gdpppp_2014","gdpusc_2014","poptott_2014",
-                 "emptot_2016","gdpppp_2016","gdpusc_2016","poptott_2016","count"), sum,na.rm = TRUE)
+group_summary <- function(dataframe, metro, ...) {
+  metro <- enquo(metro)
+  dataframe %>% 
+    filter(ismetro == !!metro) %>%
+    group_by_(...) %>% 
+    mutate(count = 1) %>%
+    summarise_if(is.numeric, sum, na.rm = TRUE)
+}
 
+Region <- group_summary(GMM17,0, "region")
 
 # generate city-region comparison -----------------------------------------
 
