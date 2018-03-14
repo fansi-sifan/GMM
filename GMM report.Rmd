@@ -7,48 +7,87 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library('dplyr')
+source('Func.R', local = TRUE)
 ```
 
 ## R Markdown
 
 This is an R Markdown document for Global Metro Monitor 2018 analysis
 
-library('dplyr')
-source('Func', local = TRUE)
+
+
+```{r Set up}
+
 GMM17 <- read.csv("source/GMM17_world_wide_groups.csv")
-
-
-```{r load data}
+GMM17 <- GMM17 %>%
+  filter(country != "World") %>%
+  mutate(region_adj = ifelse(country == "China", "China", as.character(region))) %>%
+  mutate(income_adj = ifelse(incomegroup == "High income", "Advanced economy", "Emerging Economy")) %>%
+  select(metro, country, region, region_adj, incomegroup, income_adj, ismetro,
+         emptot_2000:poptott_2017)
 head(GMM17)
 ```
 
-## Set up scope of analysis
-
-```{r time frame}
-GMM17 <- GMM17 %>%
-  mutate(region_adj = ifelse(country == "China", "China", as.character(region))) %>%
-  select(metro, country, region, region_adj, incomegroup, ismetro,
-         emptot_2000:poptott_2017)
-```
-
+## Collapse by groups
+Collapse master data by different type of cuts (region, income, etc.), show result for all cities, all countries and the subset of cities.
 ```{r collapse by group}
-#groups <- names(GMM17)[2:6]
+groups <- names(GMM17)[2:6]
 
-Region <- group_summary(GMM17, 1, "region")
+city <- lapply(groups, function(x)group_summary(GMM17, 1, x))
+country <- lapply(groups, function(x)group_summary(GMM17, 0, x))
+city_sub <- lapply(seq(1:5), function(x)(cbind(country[[x]][,1:2], country[[x]][,3:75]-city[[x]][,3:75])))
 
-#Region <- group_summary(GMM17, 0, "region")
-
-knitr::kable(Region, 'html')
+names(city_sub) <- names(country) <- names(city) <- groups
 
 ```
 
+## Generate variables of interest
+GDPPK calculates real GDP per capita, VG calculates absolute difference in values between the start year and end year (choose from "gdpusc", "emptot" or "poptott"); CAGR calculates compound annual growth rate between the start year and end year (choose from "gdpusc", "gdppk", "emptot" or "poptott")
 
 ```{r analysis function}
-test <- GDPPK(test)
-test <- VG(test, "gdpusc", 2006, 2016)
-test <- CAGR(test, "gdppk", 2010, 2016)
 
-knitr::kable(test, 'html')
+analysis <- function(dataframe,start,end){
+  temp <- GDPPK(dataframe)
+  temp <- CAGR(temp, "gdpusc", start, end)
+  temp <- CAGR(temp, "gdppk", start, end)
+  temp <- VG(temp, "gdpusc", start, end)
+  result <- temp %>% 
+    select(1,2,ends_with(paste0(start)), 
+                         ends_with(paste0(end)))
+  return(result)
+}
+
+
+
+#knitr::kable(test, 'html')
+
+```
+
+
+## Set up scope of analysis
+
+Change the start and end year of different time period (select from 2000 to 2017)
+
+```{r time frame}
+list <- list(city, country, city_sub)
+
+Short <- lapply(list,function(x) lapply(x, analysis, 2014, 2016))
+Med <- lapply(list,function(x) lapply(x, analysis, 2011, 2016))
+Long <- lapply(list,function(x) lapply(x, analysis, 2006, 2016))
+
+
+```
+
+## Save output
+
+```{r}
+
+```
+
+
+## Plot
+```{r}
 
 ```
 
