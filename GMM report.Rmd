@@ -4,10 +4,11 @@ author: "Sifan Liu"
 date: "2018/3/13"
 output: html_document
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library('dplyr')
+library('ggplot2')
+setwd("V:/Sifan/Global Metro Monitor V")
 source('Func.R', local = TRUE)
 ```
 
@@ -37,6 +38,8 @@ groups <- names(GMM17)[2:6]
 city <- lapply(groups, function(x)group_summary(GMM17, 1, x))
 country <- lapply(groups, function(x)group_summary(GMM17, 0, x))
 city_sub <- lapply(seq(1:5), function(x)(cbind(country[[x]][,1:2], country[[x]][,3:75]-city[[x]][,3:75])))
+
+city_sub <- lapply(city_sub, mutate,ismetro = -1)
 
 names(city_sub) <- names(country) <- names(city) <- groups
 
@@ -70,24 +73,100 @@ analysis <- function(dataframe,start,end){
 Change the start and end year of different time period (select from 2000 to 2017)
 
 ```{r time frame}
-list <- list(city, country, city_sub)
 
-Short <- lapply(list,function(x) lapply(x, analysis, 2014, 2016))
-Med <- lapply(list,function(x) lapply(x, analysis, 2011, 2016))
-Long <- lapply(list,function(x) lapply(x, analysis, 2006, 2016))
+list <- lapply(1:5, function(i)bind_rows(city[i], country[i], city_sub[i]))
 
+Short <- lapply(list, analysis, 2014, 2016)
+Med <- lapply(list, analysis, 2011, 2016)
+Long <- lapply(list, analysis, 2000, 2016)
+
+Short <- lapply(Short, mutate,timeperiod = "Short")
+Med <- lapply(Med, mutate,timeperiod = "Med")
+Long <- lapply(Long, mutate,timeperiod = "Long")
+
+names(Short) <- names(Med) <- names(Long) <- groups
+
+list <- lapply(1:5, function(i)rbind(Short[[i]], setNames(Med[[i]], names(Short[[i]]))))
+list <- lapply(1:5, function(i)rbind(list[[i]], setNames(Long[[i]], names(list[[i]]))))
+
+names(list) <- groups
 
 ```
 
 ## Save output
 
-```{r}
+```{r save, include=FALSE}
+
+# setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/All data")
+# 
+# lapply(1:5, function(x)write.csv(Short[x], file = paste0("Short_", names(Short[x]), ".csv")))
+# lapply(1:5, function(x)write.csv(Med[x], file = paste0("Med_", names(Med[x]), ".csv")))
+# lapply(1:5, function(x)write.csv(Long[x], file = paste0("Long_", names(Long[x]), ".csv")))
+
 
 ```
 
 
 ## Plot
 ```{r}
+
+
+barplot <- function(scope, var){
+# select data
+    data <- list[[scope]]
+  data$ismetro <- factor(ifelse(data$ismetro > 0, 1, data$ismetro))
+  data <- filter(data, ismetro != 0 )
+# draw the bar plot
+  ggplot(data, aes_string(scope, var, fill = "ismetro")) +
+    geom_bar(stat = "identity", position = position_dodge(width = 0.5)) +
+    scale_x_discrete(labels = abbreviate)+
+    facet_grid(.~timeperiod)
+  
+  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",var,".png"),
+               width = 15, height = 8)
+}
+
+barplot("region_adj", "CAGR_gdppk_2014_2016")
+barplot("region", "CAGR_gdppk_2014_2016")
+barplot("income_adj", "CAGR_gdppk_2014_2016")
+barplot("incomegroup", "CAGR_gdppk_2014_2016")
+
+barplot("region", "CAGR_gdpusc_2014_2016")
+barplot("region_adj", "CAGR_gdpusc_2014_2016")
+barplot("income_adj", "CAGR_gdpusc_2014_2016")
+barplot("incomegroup", "CAGR_gdpusc_2014_2016")
+
+
+```
+
+```{r}
+
+stackplot <- function(scope, var){
+# select data
+    data <- list[[scope]]
+  data$ismetro <- factor(ifelse(data$ismetro > 0, 1, data$ismetro))
+  data <- filter(data, ismetro != 0 )
+# draw the bar plot
+  ggplot(data, aes_string(scope, var, fill = "ismetro")) +
+    geom_bar(stat = "identity", position = position_stack(reverse = TRUE)) +
+    scale_x_discrete(labels = abbreviate)+
+    facet_grid(.~timeperiod)
+  
+  # ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",var,".png"),
+  #              width = 15, height = 8)
+}
+
+# Distribution of increase in output in three period
+stackplot("region", "VG_gdpusc_2014_2016")
+stackplot("region_adj", "VG_gdpusc_2014_2016")
+stackplot("income_adj", "VG_gdpusc_2014_2016")
+stackplot("incomegroup", "VG_gdpusc_2014_2016")
+
+# Distribution of real GDP in year 2000, 2011 2014
+stackplot("region", "gdpusc_2014")
+stackplot("region_adj", "gdpusc_2014")
+stackplot("income_adj", "gdpusc_2014")
+stackplot("incomegroup", "gdpusc_2014")
 
 ```
 
