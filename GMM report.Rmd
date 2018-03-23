@@ -8,7 +8,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library('dplyr')
 library('ggplot2')
-setwd("V:/Sifan/Global Metro Monitor V")
 source('Func.R', local = TRUE)
 ```
 
@@ -53,6 +52,7 @@ GDPPK calculates real GDP per capita, VG calculates absolute difference in value
 analysis <- function(dataframe,start,end){
   temp <- GDPPK(dataframe)
   temp <- CAGR(temp, "gdpusc", start, end)
+  temp <- CAGR(temp, "emptot", start, end)
   temp <- CAGR(temp, "gdppk", start, end)
   temp <- VG(temp, "gdpusc", start, end)
   result <- temp %>% 
@@ -97,11 +97,11 @@ names(list) <- groups
 
 ```{r save, include=FALSE}
 
-# setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/All data")
+setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/All data")
 # 
-# lapply(1:5, function(x)write.csv(Short[x], file = paste0("Short_", names(Short[x]), ".csv")))
+lapply(1:5, function(x)write.csv(Short[x], file = paste0("Short.", names(Short[x]), ".csv")))
 # lapply(1:5, function(x)write.csv(Med[x], file = paste0("Med_", names(Med[x]), ".csv")))
-# lapply(1:5, function(x)write.csv(Long[x], file = paste0("Long_", names(Long[x]), ".csv")))
+lapply(1:5, function(x)write.csv(Long[x], file = paste0("Long.", names(Long[x]), ".csv")))
 
 
 ```
@@ -152,8 +152,8 @@ stackplot <- function(scope, var){
     scale_x_discrete(labels = abbreviate)+
     facet_grid(.~timeperiod)
   
-  # ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",var,".png"),
-  #              width = 15, height = 8)
+  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",var,".png"),
+               width = 15, height = 8)
 }
 
 # Distribution of increase in output in three period
