@@ -3,6 +3,13 @@ library('reshape2')
 library('data.table')
 
 
+comprss <- function(tx){ 
+  div <- findInterval(as.numeric(gsub("\\,", "", abs(tx))),
+                      c(1, 1e3, 1e6, 1e9, 1e12) )
+  paste(sign(tx)*round(as.numeric(gsub("\\,","",abs(tx)))/10^(3*(div-1)), 1), 
+        c("","K","M","B","T")[div])
+}
+
 # Indicators ----------------------------------------------------------------
 
 # generate YOY growth rate

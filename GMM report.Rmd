@@ -8,6 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library('dplyr')
 library('ggplot2')
+library('scales')
 source('Func.R', local = TRUE)
 ```
 
@@ -113,33 +114,37 @@ lapply(1:5, function(x)write.csv(Long[x], file = paste0("Long.", names(Long[x]),
 
 barplot <- function(scope, var){
 # select data
-    data <- list[[scope]]
+  data <- list[[scope]]
   data$ismetro <- factor(ifelse(data$ismetro > 0, 1, data$ismetro))
   data <- filter(data, ismetro != 0 )
+  data$lab <- data[[var]]
+  yname <- stringr::str_sub(var,1,-11)
 # draw the bar plot
   ggplot(data, aes_string(scope, var, fill = "ismetro")) +
     geom_bar(stat = "identity", position = position_dodge(width = 0.5)) +
-    scale_x_discrete(labels = abbreviate)+
+    geom_text(aes(label = percent(lab)), position = position_dodge(width = 0.5), vjust = -0.25) +
+    scale_x_discrete(labels = abbreviate) +
+    scale_y_continuous(labels = percent, name = yname)+
     facet_grid(.~timeperiod)
   
-  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",var,".png"),
+  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",yname,".png"),
                width = 15, height = 8)
 }
 
 barplot("region_adj", "CAGR_gdppk_2014_2016")
-barplot("region", "CAGR_gdppk_2014_2016")
+# barplot("region", "CAGR_gdppk_2014_2016")
 barplot("income_adj", "CAGR_gdppk_2014_2016")
-barplot("incomegroup", "CAGR_gdppk_2014_2016")
-
-barplot("region", "CAGR_gdpusc_2014_2016")
+# barplot("incomegroup", "CAGR_gdppk_2014_2016")
+# 
+# barplot("region", "CAGR_gdpusc_2014_2016")
 barplot("region_adj", "CAGR_gdpusc_2014_2016")
 barplot("income_adj", "CAGR_gdpusc_2014_2016")
-barplot("incomegroup", "CAGR_gdpusc_2014_2016")
-
-barplot("region", "CAGR_emptot_2014_2016")
+# barplot("incomegroup", "CAGR_gdpusc_2014_2016")
+# 
+# barplot("region", "CAGR_emptot_2014_2016")
 barplot("region_adj", "CAGR_emptot_2014_2016")
 barplot("income_adj", "CAGR_emptot_2014_2016")
-barplot("incomegroup", "CAGR_emptot_2014_2016")
+# barplot("incomegroup", "CAGR_emptot_2014_2016")
 
 
 ```
@@ -148,30 +153,36 @@ barplot("incomegroup", "CAGR_emptot_2014_2016")
 
 stackplot <- function(scope, var){
 # select data
-    data <- list[[scope]]
+  data <- list[[scope]]
   data$ismetro <- factor(ifelse(data$ismetro > 0, 1, data$ismetro))
   data <- filter(data, ismetro != 0 )
+  data$lab <- data[[var]]
+  
+  yname <- stringr::str_sub(var,1,-11)
+
 # draw the bar plot
   ggplot(data, aes_string(scope, var, fill = "ismetro")) +
-    geom_bar(stat = "identity", position = position_stack(reverse = TRUE)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label = comprss(lab)), position = position_stack(vjust = 0.5)) +
     scale_x_discrete(labels = abbreviate)+
+    scale_y_continuous(labels = comma, name = yname)+
     facet_grid(.~timeperiod)
   
-  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",var,".png"),
+  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",yname,".png"),
                width = 15, height = 8)
 }
 
 # Distribution of increase in output in three period
-stackplot("region", "VG_gdpusc_2014_2016")
+# stackplot("region", "VG_gdpusc_2014_2016")
 stackplot("region_adj", "VG_gdpusc_2014_2016")
 stackplot("income_adj", "VG_gdpusc_2014_2016")
-stackplot("incomegroup", "VG_gdpusc_2014_2016")
+# stackplot("incomegroup", "VG_gdpusc_2014_2016")
 
 # Distribution of real GDP in year 2000, 2011 2014
-stackplot("region", "gdpusc_2014")
-stackplot("region_adj", "gdpusc_2014")
-stackplot("income_adj", "gdpusc_2014")
-stackplot("incomegroup", "gdpusc_2014")
+# stackplot("region", "gdpusc_2014")
+# stackplot("region_adj", "gdpusc_2014")
+# stackplot("income_adj", "gdpusc_2014")
+# stackplot("incomegroup", "gdpusc_2014")
 
 ```
 
