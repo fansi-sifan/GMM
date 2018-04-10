@@ -186,3 +186,56 @@ stackplot("income_adj", "VG_gdpusc_2014_2016")
 
 ```
 
+```{r Findings 2}
+
+GDPPK_ratio <- GMM17 %>% mutate(gdppk_2016 = gdpusc_2016/poptott_2016) %>%
+  filter(ismetro == 1) %>%
+  select(metro, country, region, region_adj, gdppk_2016) %>%
+  left_join(filter(Short$country[c("country", "ismetro","gdppk_2016")], ismetro == 0), by = "country") %>%
+  left_join(filter(Short$region_adj[c("region_adj", "ismetro","gdppk_2016")], ismetro == 0), by = "region_adj") %>%
+  mutate(GDPPK_ratio_country = gdppk_2016.x/gdppk_2016.y,
+         GDPPK_ratio_region_adj = gdppk_2016.x/gdppk_2016) %>%
+  select(-contains("ismetro")) %>%
+  mutate(GDPPK_country_better = as.factor(ifelse(GDPPK_ratio_country > 1,1,0)),
+         GDPPK_region_adj_better = as.factor(ifelse(GDPPK_ratio_region_adj > 1, 1,0)))
+
+summary(GDPPK_ratio)
+
+
+```
+# plots
+
+```{r visuals}
+
+ggplot(GDPPK_ratio, aes(x = region_adj, y = GDPPK_ratio_region_adj)) +
+  geom_boxplot() +
+  scale_x_discrete(labels = abbreviate)
+
+ggplot(GDPPK_ratio, aes(GDPPK_ratio_country, fill = GDPPK_country_better)) + 
+         geom_histogram(binwidth = 0.2, boundary = 1, closed = "right") +
+         facet_wrap(~ region_adj) + 
+  theme_classic()
+
+# ggplot(GDPPK_ratio, aes(GDPPK_ratio_region_adj, fill = GDPPK_region_adj_better)) + 
+#          geom_histogram(binwidth = 0.2, boundary = 1, closed = "right") +
+#          facet_wrap(~ region_adj, scale = "free_x") + 
+#   theme_classic()
+#   
+
+
+```
+vis <- read.csv("source/long_region_adj_vis.csv")
+vis <- tidyr::gather(vis,year, value, X2000:X2016)
+vis$year<- as.integer(substr(vis$year,2,5))
+
+```{r YOY of emp and GDPPK}
+
+ggplot(filter(vis, variable == "EMPTOT"),aes(x = year, y = value, color = Type)) +
+  geom_line() +
+  facet_wrap(~ Region, scales = "free") +
+  theme(legend.justification = c(1,0),
+        legend.position = c(1,0))
+
+
+```
+
