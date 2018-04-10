@@ -231,11 +231,28 @@ vis$year<- as.integer(substr(vis$year,2,5))
 ```{r YOY of emp and GDPPK}
 
 ggplot(filter(vis, variable == "EMPTOT"),aes(x = year, y = value, color = Type)) +
+  annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
   geom_line() +
   facet_wrap(~ Region, scales = "free") +
   theme(legend.justification = c(1,0),
-        legend.position = c(1,0))
+        legend.position = c(1,0), 
+        panel.grid = element_blank(),
+        panel.background = element_blank())
 
+ggsave("EMPTOT.pdf", width = 8, height = 8)     
+ggsave("EMPTOT.png", width = 8, height = 8)     
+  
+ggplot(filter(vis, variable == "GDPPK"),aes(x = year, y = value, color = Type)) +
+  annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
+  geom_line() +
+  facet_wrap(~ Region, scales = "free") +
+  theme(legend.justification = c(1,0),
+        legend.position = c(1,0), 
+        panel.grid = element_blank(),
+        panel.background = element_blank())
+
+ggsave("GDPPK.pdf", width = 8, height = 8)
+ggsave("GDPPK.png", width = 8, height = 8)
 
 ```
 
