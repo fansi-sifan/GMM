@@ -1,40 +1,49 @@
-library('dplyr')
-library('tidyr')
-library('reshape2')
-library('data.table')
+# Author: Sifan Liu
+# Date: Fri Apr 13 16:41:41 2018
+# --------------
+source("Load.R")
 
-# Reshape data, create new variables
-reshape <- function(dataframe){
-  names(dataframe) <- gsub(" ", ".", names(dataframe))
-  var.list <- unique(dataframe$Variable.code)
-  #  var.list <- append(var.list, "EPratio")
-  #  var.list <- append(var.list, "GDPUSC_PK")
-  var.list <- var.list[2:length(var.list)]
-  long <- gather(dataframe, Year, Value, '2000':'2017', factor_key = TRUE)
-  wide <- spread(select(long, -Series.mnemonic, -Type, -Variable.name, - Major, - Units, - Currency), 
-                 Variable.code, Value)
-  # For Chinese cities, use sum of private emp and tot emp as EMPTOT
-  wide$EMPTOT <- ifelse(is.na(wide$EMPTOT), wide$EMPEPRIV + wide$EMPETOT, wide$EMPTOT)
-  wide$EPratio <- wide$EMPTOT/wide$POPTOTT
-  wide$GDPUSC_PK <- wide$GDPUSC/wide$POPTOTT
-  WIDE <- dcast(setDT(wide), Location.code + IsMetro + Metro + Country ~ Year, 
-                value.var = var.list)
-  output <- list(WIDE,var.list)
-  return(output)
-}
+# match to groups ---------------------------------------------------------
+master_long <- left_join(master, group, by = c("Country"= "country"))
 
-# Reshape data, create new variables
-reshape_MENA <- function(dataframe){
-  names(dataframe) <- gsub(" ", ".", names(dataframe))
-  var.list <- unique(dataframe$Variable.code)
-  var.list <- append(var.list, "GDPUSC_PK")
-  var.list <- var.list[2:length(var.list)]
-  long <- gather(dataframe, Year, Value, '2000':'2017', factor_key = TRUE)
-  wide <- spread(select(long, -Series.mnemonic, -Type, -Variable.name, - Major, - Units, - Currency), 
-                 Variable.code, Value)
-  wide$GDPUSC_PK <- wide$GDPUSC/wide$POPTOTT
-  WIDE <- dcast(setDT(wide), Location.code + IsMetro + Metro + Country ~ Year, 
-                value.var = var.list)
-  output <- list(wide, WIDE, var.list)
-  return(output)
+# check for NAs
+# summary(master[c("region", "incomegroup")])
+# filter(master, is.na(master$region))
+
+# manually code Macau to high income, Advanced Asia Pacific
+summary(master_long[c("region", "incomegroup")])
+
+master_long <- select(master_long, region, incomegroup, everything())
+
+write.csv(master_long, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis/GMM17_World_long_groups.csv")
+
+
+
+
+# MENA dataset ------------------------------------------------------------
+
+test <- reshape_MENA(MENA)
+MENA_long <- test[[1]]
+MENA_wide <- test[[2]]
+var.list <- test[[3]]
+
+write.csv(MENA_long, "../data for analysis/MENA_long.csv")
+
+var.list <- c("GDPUSC", "GDPPPP", "EMPTOT", "POPTOTT", "GDPUSC_PK")
+
+temp <- MENA_wide
+
+for (var in var.list){
+  tryCatch({
+    temp <- YOY(var, temp)
+    temp <- CAGR(temp, var, 2000, 2016)
+    temp <- CAGR(temp, var, 2009, 2016)
+    temp <- CAGR(temp, var, 2014, 2016)
+  },
+  error = function(e) e
+  )
 }
+write.csv(temp, "../data for analysis/MENA_wide.csv")
+
+
+

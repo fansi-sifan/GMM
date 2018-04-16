@@ -6,38 +6,112 @@ output: html_document
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library('dplyr')
-library('ggplot2')
-library('scales')
+# Author: Sifan Liu
+# Date: Mon Apr 16 10:21:53 2018
+# --------------
+
 source('Func.R', local = TRUE)
+load("master.Rdata")
+
+pkgs <- c('dplyr', 'ggplot2', 'scales')
+
+check <- sapply(pkgs,require,warn.conflicts = TRUE,character.only = TRUE)
+if(any(!check)){
+    pkgs.missing <- pkgs[!check]
+    install.packages(pkgs.missing)
+    check <- sapply(pkgs.missing,require,warn.conflicts = TRUE,character.only = TRUE)
+  } 
 ```
 
 ## R Markdown
 
 This is an R Markdown document for Global Metro Monitor 2018 analysis
 
+```{r reshapre master data}
+# World master spreadsheet -------------------------------------------------------------------
+
+Master_wide <- reshape_wide(master)
+temp <- Master_wide[[1]]
+var.list <- Master_wide[[2]]
+
+# add region and incomegroups 
+temp <- temp %>% 
+  filter(!is.na(Location.code)) %>%
+  left_join(group, by = c( "Country" = "country")) %>%
+  select(Location.code, IsMetro, Metro, Country, region, incomegroup, everything())
+
+# clean data
+temp <- select(temp, -contains("EMPEPRIV"), - contains("EMPETOT"))
+names(temp) <- tolower(names(temp))
+
+summary(temp)
+# write to result
 
 
-```{r Set up}
+```
 
-GMM17 <- read.csv("source/GMM17_world_wide_groups.csv")
+
+```{r data clean, add adjusted region and income groups}
+
+#GMM17 <- read.csv("source/GMM17_world_wide_groups.csv")
+GMM17 <- temp
 GMM17 <- GMM17 %>%
   filter(country != "World") %>%
   mutate(region_adj = ifelse(country == "China", "China", as.character(region))) %>%
   mutate(income_adj = ifelse(incomegroup == "High income", "Advanced economy", "Emerging Economy")) %>%
-  select(metro, country, region, region_adj, incomegroup, income_adj, ismetro,
-         emptot_2000:poptott_2017)
-head(GMM17)
+  select(metro, country, region, region_adj, incomegroup, income_adj, ismetro, everything())
+
+wide <- GDPPK(GMM17)
+wide <- CAGR(wide, "gdpusc", 2000, 2016)
+wide <- CAGR(wide, "gdpusc", 2014, 2016)
+wide <- CAGR(wide, "emptot", 2000, 2016)
+wide <- CAGR(wide, "emptot", 2014, 2016)
+wide <- CAGR(wide, "gdppk", 2000, 2016)
+wide <- CAGR(wide, "gdppk", 2014, 2016)
+
+
+head(wide)
+write.csv(wide, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis/GMM17_World_wide_groups.csv")
+
 ```
 
-## Collapse by groups
-Collapse master data by different type of cuts (region, income, etc.), show result for all cities, all countries and the subset of cities.
+# Collapse by groups =====================
+
+```{r test world without China}
+
+GMM17$China <- ifelse(GMM17$country == "China",1,0)
+test <- rbind(group_summary(GMM17, 1, "China"), group_summary(GMM17, 1))
+test <- test %>%
+  GDPPK()%>%
+  CAGR("gdpusc", 2014, 2016) %>%
+  CAGR("gdppk", 2014, 2016) %>%
+  CAGR("emptot", 2014, 2016) %>%
+  CAGR("poptott", 2014, 2016) %>%
+  select(China,contains("CAGR"))
+
+
+world <- temp %>%
+  filter(ismetro != 1) %>%
+  filter(country == "World"|country == "China") %>%
+  bind_rows(.[2,-c(1:6)]-.[1,-c(1:6)]) %>%
+  GDPPK() %>%
+  CAGR("gdpusc", 2014, 2016) %>%
+  CAGR("gdppk", 2014, 2016) %>%
+  CAGR("emptot", 2014, 2016) %>%
+  CAGR("poptott", 2014, 2016) %>%
+  select(country,contains("CAGR"))
+  
+```
+
+
+# Collapse master data by different type of cuts (region, income, etc.), show result for all cities, all countries and the subset of cities.
 ```{r collapse by group}
 groups <- names(GMM17)[2:6]
 
 city <- lapply(groups, function(x)group_summary(GMM17, 1, x))
 country <- lapply(groups, function(x)group_summary(GMM17, 0, x))
-city_sub <- lapply(seq(1:5), function(x)(cbind(country[[x]][,1:2], country[[x]][,3:75]-city[[x]][,3:75])))
+city_sub <- lapply(seq(1:5), function(x)(cbind(country[[x]][,1:2],
+                                               country[[x]][-c(1:2)]-city[[x]][-c(1:2)])))
 
 city_sub <- lapply(city_sub, mutate,ismetro = -1)
 
@@ -57,8 +131,7 @@ analysis <- function(dataframe,start,end){
   temp <- CAGR(temp, "gdppk", start, end)
   temp <- VG(temp, "gdpusc", start, end)
   result <- temp %>% 
-    select(1,2,ends_with(paste0(start)), 
-                         ends_with(paste0(end)))
+    select(1,2,ends_with(paste0(start)), ends_with(paste0(end)))
   return(result)
 }
 
@@ -75,20 +148,23 @@ Change the start and end year of different time period (select from 2000 to 2017
 
 ```{r time frame}
 
+
+
 list <- lapply(1:5, function(i)bind_rows(city[i], country[i], city_sub[i]))
 
 Short <- lapply(list, analysis, 2014, 2016)
-Med <- lapply(list, analysis, 2011, 2016)
+# Med <- lapply(list, analysis, 2011, 2016)
 Long <- lapply(list, analysis, 2000, 2016)
 
 Short <- lapply(Short, mutate,timeperiod = "Short")
-Med <- lapply(Med, mutate,timeperiod = "Med")
+# Med <- lapply(Med, mutate,timeperiod = "Med")
 Long <- lapply(Long, mutate,timeperiod = "Long")
 
-names(Short) <- names(Med) <- names(Long) <- groups
+names(Short) <- groups
+#names(Med) <- groups
+names(Long) <- groups
 
-list <- lapply(1:5, function(i)rbind(Short[[i]], setNames(Med[[i]], names(Short[[i]]))))
-list <- lapply(1:5, function(i)rbind(list[[i]], setNames(Long[[i]], names(list[[i]]))))
+list <- lapply(1:5, function(i)rbind(Short[[i]], setNames(Long[[i]], names(Short[[i]]))))
 
 names(list) <- groups
 
@@ -98,7 +174,7 @@ names(list) <- groups
 
 ```{r save, include=FALSE}
 
-setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/All data")
+setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis")
 # 
 lapply(1:5, function(x)write.csv(Short[x], file = paste0("Short.", names(Short[x]), ".csv")))
 # lapply(1:5, function(x)write.csv(Med[x], file = paste0("Med_", names(Med[x]), ".csv")))
@@ -109,7 +185,7 @@ lapply(1:5, function(x)write.csv(Long[x], file = paste0("Long.", names(Long[x]),
 
 
 ## Plot
-```{r}
+```{r bar charts}
 
 
 barplot <- function(scope, var){
@@ -127,7 +203,7 @@ barplot <- function(scope, var){
     scale_y_continuous(labels = percent, name = yname)+
     facet_grid(.~timeperiod)
   
-  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",yname,".png"),
+  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/",scope,"_",yname,".png"),
                width = 15, height = 8)
 }
 
@@ -149,7 +225,7 @@ barplot("income_adj", "CAGR_emptot_2014_2016")
 
 ```
 
-```{r}
+```{r stack plots}
 
 stackplot <- function(scope, var){
 # select data
@@ -168,7 +244,7 @@ stackplot <- function(scope, var){
     scale_y_continuous(labels = comma, name = yname)+
     facet_grid(.~timeperiod)
   
-  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/01182018/Sifan/result/Plots/",scope,"_",yname,".png"),
+  ggsave(paste0("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/",scope,"_",yname,".png"),
                width = 15, height = 8)
 }
 
@@ -226,33 +302,49 @@ ggplot(GDPPK_ratio, aes(GDPPK_ratio_country, fill = GDPPK_country_better)) +
 ```
 vis <- read.csv("source/long_region_adj_vis.csv")
 vis <- tidyr::gather(vis,year, value, X2000:X2016)
-vis$year<- as.integer(substr(vis$year,2,5))
+
+```{r prepare data}
+
+vis <- rbind(city$region_adj, city_sub$region_adj)
+vis$Type <- ifelse(vis$ismetro == -1,"Rest of the region", "Large metros")
+vis <- vis %>% GDPPK() %>%
+  select(region_adj, Type, contains("gdppk"),contains("emptot"))%>%
+  gather(Region, var, gdppk_2000:emptot_2017) %>%
+  separate(Region,c("variable","year"), sep = "_") %>%
+  spread(year, var)
+
+vis_raw <- vis[,4:21]
+vis_adj <- cbind(vis[,1:3],(vis_raw/matrix(vis[["2000"]], nrow = nrow(vis_raw), ncol = ncol(vis_raw)))*100)
+vis_adj <- gather(vis_adj, year, value, `2000`:`2017`)
+vis_adj$year <- as.integer(vis_adj$year)
+```
+
 
 ```{r YOY of emp and GDPPK}
 
-ggplot(filter(vis, variable == "EMPTOT"),aes(x = year, y = value, color = Type)) +
+ggplot(filter(vis_adj, variable == "emptot"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
   geom_line() +
-  facet_wrap(~ Region, scales = "free") +
+  facet_wrap(~ region_adj, scales = "free") +
   theme(legend.justification = c(1,0),
         legend.position = c(1,0), 
         panel.grid = element_blank(),
         panel.background = element_blank())
 
-ggsave("EMPTOT.pdf", width = 8, height = 8)     
-ggsave("EMPTOT.png", width = 8, height = 8)     
+# ggsave("EMPTOT.pdf", width = 8, height = 8)     
+# ggsave("EMPTOT.png", width = 8, height = 8)     
   
-ggplot(filter(vis, variable == "GDPPK"),aes(x = year, y = value, color = Type)) +
+ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
   geom_line() +
-  facet_wrap(~ Region, scales = "free") +
+  facet_wrap(~ region_adj, scales = "free") +
   theme(legend.justification = c(1,0),
         legend.position = c(1,0), 
         panel.grid = element_blank(),
         panel.background = element_blank())
 
-ggsave("GDPPK.pdf", width = 8, height = 8)
-ggsave("GDPPK.png", width = 8, height = 8)
+# ggsave("GDPPK.pdf", width = 8, height = 8)
+# ggsave("GDPPK.png", width = 8, height = 8)
 
 ```
 
