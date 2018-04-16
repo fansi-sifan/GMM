@@ -9,11 +9,11 @@ knitr::opts_chunk$set(echo = TRUE)
 # Author: Sifan Liu
 # Date: Mon Apr 16 10:21:53 2018
 # --------------
-
+source('Load.R')
 source('Func.R', local = TRUE)
 load("master.Rdata")
 
-pkgs <- c('dplyr', 'ggplot2', 'scales')
+pkgs <- c('tidyr','dplyr', 'ggplot2', 'scales')
 
 check <- sapply(pkgs,require,warn.conflicts = TRUE,character.only = TRUE)
 if(any(!check)){
@@ -71,7 +71,7 @@ wide <- CAGR(wide, "gdppk", 2014, 2016)
 
 
 head(wide)
-write.csv(wide, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis/GMM17_World_wide_groups.csv")
+# write.csv(wide, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis/GMM17_World_wide_groups.csv")
 
 ```
 
@@ -87,7 +87,10 @@ test <- test %>%
   CAGR("gdppk", 2014, 2016) %>%
   CAGR("emptot", 2014, 2016) %>%
   CAGR("poptott", 2014, 2016) %>%
-  select(China,contains("CAGR"))
+  VG("gdpusc", 2014, 2016)%>%
+  VG("emptot", 2014, 2016)%>%
+  VG("poptott", 2014, 2016)%>%
+  select(China,contains("CAGR"), ends_with("2016"))
 
 
 world <- temp %>%
@@ -99,7 +102,12 @@ world <- temp %>%
   CAGR("gdppk", 2014, 2016) %>%
   CAGR("emptot", 2014, 2016) %>%
   CAGR("poptott", 2014, 2016) %>%
-  select(country,contains("CAGR"))
+  VG("gdpusc", 2014, 2016)%>%
+  VG("emptot", 2014, 2016)%>%
+  VG("poptott", 2014, 2016)%>%
+  select(country,contains("CAGR"),ends_with("2016"))
+
+bind_rows(test, world)[c(3),c(6:13)]/bind_rows(test, world)[c(5),c(6:13)]
   
 ```
 
@@ -300,8 +308,7 @@ ggplot(GDPPK_ratio, aes(GDPPK_ratio_country, fill = GDPPK_country_better)) +
 
 
 ```
-vis <- read.csv("source/long_region_adj_vis.csv")
-vis <- tidyr::gather(vis,year, value, X2000:X2016)
+
 
 ```{r prepare data}
 
@@ -317,10 +324,13 @@ vis_raw <- vis[,4:21]
 vis_adj <- cbind(vis[,1:3],(vis_raw/matrix(vis[["2000"]], nrow = nrow(vis_raw), ncol = ncol(vis_raw)))*100)
 vis_adj <- gather(vis_adj, year, value, `2000`:`2017`)
 vis_adj$year <- as.integer(vis_adj$year)
+
+write.csv(vis_adj, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/vis_adj.csv")
 ```
 
 
 ```{r YOY of emp and GDPPK}
+vis_adj <- filter(vis_adj, year != 2017)
 
 ggplot(filter(vis_adj, variable == "emptot"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
@@ -331,11 +341,11 @@ ggplot(filter(vis_adj, variable == "emptot"),aes(x = year, y = value, color = Ty
         panel.grid = element_blank(),
         panel.background = element_blank())
 
-# ggsave("EMPTOT.pdf", width = 8, height = 8)     
-# ggsave("EMPTOT.png", width = 8, height = 8)     
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.pdf", width = 8, height = 6)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.png", width = 8, height = 6)
   
 ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Type)) +
-  annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
+  annotate("rect", xmin = 2014,xmax = 2016, ymin = 95,ymax = Inf,alpha = 0.1) +
   geom_line() +
   facet_wrap(~ region_adj, scales = "free") +
   theme(legend.justification = c(1,0),
@@ -343,8 +353,8 @@ ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Typ
         panel.grid = element_blank(),
         panel.background = element_blank())
 
-# ggsave("GDPPK.pdf", width = 8, height = 8)
-# ggsave("GDPPK.png", width = 8, height = 8)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.pdf", width = 8, height = 6)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.png", width = 8, height = 6)
 
 ```
 

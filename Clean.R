@@ -2,6 +2,7 @@
 # Date: Fri Apr 13 16:41:41 2018
 # --------------
 source("Load.R")
+source("Func.R")
 
 # match to groups ---------------------------------------------------------
 master_long <- left_join(master, group, by = c("Country"= "country"))

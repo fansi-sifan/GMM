@@ -116,13 +116,3 @@ group_summary <- function(dataframe, metro, ...) {
 }
 
 
-# generate city-region comparison -----------------------------------------
-
-city_region <- function(dt, ...) dt%>%
-  group_by_(...) %>%
-  summarise_if(is.numeric,sum) %>%
-  mutate(gdpusc_pk_16_0 = gdpusc_2016_0/poptott_2016_0,
-         gdpusc_pk_16_1 = gdpusc_2016_1/poptott_2016_1,
-         share_gdpusc_14_16 = gdpusc_2014_2016_1/gdpusc_2014_2016_0,
-         share_emptot_14_16 = emptot_2014_2016_1/emptot_2014_2016_0,
-         share_poptott_16 = poptott_2016_1/poptott_2016_0)
