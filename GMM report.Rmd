@@ -43,8 +43,7 @@ temp <- temp %>%
 # clean data
 temp <- select(temp, -contains("EMPEPRIV"), - contains("EMPETOT"))
 names(temp) <- tolower(names(temp))
-
-summary(temp)
+head(temp)
 # write to result
 
 
@@ -92,7 +91,6 @@ test <- test %>%
   VG("poptott", 2014, 2016)%>%
   select(China,contains("CAGR"), ends_with("2016"))
 
-
 world <- temp %>%
   filter(ismetro != 1) %>%
   filter(country == "World"|country == "China") %>%
@@ -124,6 +122,15 @@ city_sub <- lapply(seq(1:5), function(x)(cbind(country[[x]][,1:2],
 city_sub <- lapply(city_sub, mutate,ismetro = -1)
 
 names(city_sub) <- names(country) <- names(city) <- groups
+
+```
+
+```{r GDP per capita gap between income and metro/rest}
+
+gap_GDPPK <- rbind(city$income_adj,city_sub$income_adj) %>%
+  GDPPK() %>%
+  select(income_adj, ismetro,gdppk_2016)
+
 
 ```
 
@@ -325,36 +332,64 @@ vis_adj <- cbind(vis[,1:3],(vis_raw/matrix(vis[["2000"]], nrow = nrow(vis_raw), 
 vis_adj <- gather(vis_adj, year, value, `2000`:`2017`)
 vis_adj$year <- as.integer(vis_adj$year)
 
-write.csv(vis_adj, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/vis_adj.csv")
+# write.csv(vis_adj, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/vis_adj.csv")
 ```
 
 
 ```{r YOY of emp and GDPPK}
 vis_adj <- filter(vis_adj, year != 2017)
+line_theme <- theme(legend.justification = c(1,0),
+        legend.position = c(1,0), 
+        panel.grid = element_blank(),
+        panel.background = element_blank())
 
 ggplot(filter(vis_adj, variable == "emptot"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
-  geom_line() +
   facet_wrap(~ region_adj, scales = "free") +
-  theme(legend.justification = c(1,0),
-        legend.position = c(1,0), 
-        panel.grid = element_blank(),
-        panel.background = element_blank())
+  geom_line()+
+  line_theme
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.pdf", width = 8, height = 6)
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.png", width = 8, height = 6)
-  
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.pdf", width = 8, height = 6)
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.png", width = 8, height = 6)
+
 ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 95,ymax = Inf,alpha = 0.1) +
-  geom_line() +
   facet_wrap(~ region_adj, scales = "free") +
-  theme(legend.justification = c(1,0),
-        legend.position = c(1,0), 
+  geom_line()+
+  line_theme
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.pdf", width = 8, height = 6)
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.png", width = 8, height = 6)
+
+```
+
+```{r}
+
+deck_theme <- 
+    theme(legend.position = "none", 
         panel.grid = element_blank(),
-        panel.background = element_blank())
+        panel.background = element_blank(),
+        axis.text = element_text(color = "white", size = 24),
+        axis.line = element_line(color = "white"),
+        plot.background = element_blank(),
+        strip.text = element_text(color = "white",size = 30),
+        strip.background = element_blank())
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.pdf", width = 8, height = 6)
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.png", width = 8, height = 6)
 
+ggplot(filter(vis_adj, variable == "emptot"),aes(x = year, y = value, color = Type, size = 10)) +
+  facet_wrap(~ region_adj, scales = "free_y", ncol = 4) +
+  geom_line()+
+  scale_color_manual(values = c("#fdae61","#2c7bb6"))+
+  deck_theme
+
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Presentation/figures/EMPTOT_line.png", width = 30, height = 8, bg = "transparent")
+
+ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Type, size = 10)) +
+  facet_wrap(~ region_adj, scales = "free_y", ncol = 4) +
+  geom_line()+
+  scale_color_manual(values = c("#fdae61","#2c7bb6"))+
+  deck_theme
+
+
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Presentation/figures/GDPPK_line.png", width = 30, height = 8, bg = "transparent")
 ```
 
