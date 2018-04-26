@@ -9,9 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Author: Sifan Liu
 # Date: Mon Apr 16 10:21:53 2018
 # --------------
-source('Load.R')
-source('Func.R', local = TRUE)
-load("master.Rdata")
+
 
 pkgs <- c('tidyr','dplyr', 'ggplot2', 'scales')
 
@@ -20,7 +18,11 @@ if(any(!check)){
     pkgs.missing <- pkgs[!check]
     install.packages(pkgs.missing)
     check <- sapply(pkgs.missing,require,warn.conflicts = TRUE,character.only = TRUE)
-  } 
+} 
+
+source('Load.R')
+source('Func.R', local = TRUE)
+load("master.Rdata")
 ```
 
 ## R Markdown
@@ -332,7 +334,7 @@ vis_adj <- cbind(vis[,1:3],(vis_raw/matrix(vis[["2000"]], nrow = nrow(vis_raw), 
 vis_adj <- gather(vis_adj, year, value, `2000`:`2017`)
 vis_adj$year <- as.integer(vis_adj$year)
 
-# write.csv(vis_adj, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/vis_adj.csv")
+# write.csv(vis_adj, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis/vis_adj.csv")
 ```
 
 
@@ -346,19 +348,21 @@ line_theme <- theme(legend.justification = c(1,0),
 ggplot(filter(vis_adj, variable == "emptot"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
   facet_wrap(~ region_adj, scales = "free") +
+  ylab(label = "Indexed employment, (2000 = 100)")+
   geom_line()+
-  line_theme
+  line_theme%+%theme(strip.background = element_blank())
 
-# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.pdf", width = 8, height = 6)
-# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/EMPTOT.png", width = 8, height = 6)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 6.pdf", width = 8, height = 6)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 6.eps", width = 8, height = 6)
 
 ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 95,ymax = Inf,alpha = 0.1) +
   facet_wrap(~ region_adj, scales = "free") +
+  ylab(label = "Indexed GDP per capita, (2000 = 100)")+
   geom_line()+
-  line_theme
-# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.pdf", width = 8, height = 6)
-# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/GDPPK.png", width = 8, height = 6)
+  line_theme%+%theme(strip.background = element_blank())
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 7.pdf", width = 8, height = 6)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 7.eps", width = 8, height = 6)
 
 ```
 

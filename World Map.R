@@ -53,8 +53,10 @@ GMM_wrapper +
   coord_map("mercator",xlim = c(-180,180), ylim = c(-60, 65)) +
   GMM_theme 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/worldmap_random.png", width = 20, height = 12)   
-#ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/worldmap_q1.png", width = 20, height = 12)   
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10.eps", width = 20, height = 12)   
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10.pdf", width = 20, height = 12)   
+
+#ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/worldmap.png", width = 20, height = 12)   
 #ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/worldmap.pdf", width = 20, height = 12)  
 
 
@@ -63,7 +65,11 @@ GMM_wrapper +
   GMM_label_top +
   coord_quickmap(xlim = c(100,145), ylim = c(20, 45)) +
   GMM_theme 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/China.png", width = 10, height = 6)  
+
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_China.eps", width = 10, height = 6)   
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_China.pdf", width = 10, height = 6)   
+
+#ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/China.png", width = 10, height = 6)  
 
 # US ================================================
 GMM_wrapper +
@@ -71,15 +77,22 @@ GMM_wrapper +
   coord_quickmap(xlim = c(-125,-60), ylim = c(18, 53)) +
   GMM_theme 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/Europe.png", width = 10, height = 6)   
+
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US.eps", width = 10, height = 6)   
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US.pdf", width = 10, height = 6)   
+
+#ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/Europe.png", width = 10, height = 6)   
 
 # Europe ================================================
 GMM_wrapper  +
   GMM_label_top +
-  coord_quickmap(xlim = c(-10,25), ylim = c(40, 60)) +
+  coord_quickmap(xlim = c(-10,22), ylim = c(40, 60)) +
   GMM_theme 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/Europe.png", width = 10, height = 6)   
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_EU.eps", width = 10, height = 6)   
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_EU.pdf", width = 10, height = 6)   
+
+#ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/Europe.png", width = 10, height = 6)   
 
 
 # MENA pockets of growth --------------------------------------------------
@@ -95,8 +108,9 @@ ggplot() +
   GMM_theme 
 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/MENA.png", width = 10, height = 6)  
-
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/MENA.png", width = 10, height = 6)  
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14.eps", width = 10, height = 6)  
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14.pdf", width = 10, height = 6)  
 
 
 # Slide map ---------------------------------------------------------------
@@ -188,3 +202,6 @@ ggplot() +
   GMM_theme %+% theme(legend.position = "none")
 
 ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Presentation/figures/China.png", width = 20, height = 12,bg = "transparent")   
+
+
+
