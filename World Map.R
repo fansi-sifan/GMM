@@ -46,14 +46,14 @@ GMM_label_top <- geom_text(data = filter(worldmap,istop_q_14_16 == 1), aes(x = L
 # world map ================================================
 
 GMM_wrapper +
-  geom_text(data = worldmap, aes(x = Longitude, y = Latitude, label = metrofinalname),
-            check_overlap = TRUE, nudge_y = 1.5, color = "#636363", size = 2) +
+  # geom_text(data = worldmap, aes(x = Longitude, y = Latitude, label = metrofinalname),
+  #           check_overlap = TRUE, nudge_y = 1.5, color = "#636363", size = 2) +
   # geom_text(data = filter(worldmap,istop_q_14_16 == 1), aes(x = Longitude, y = Latitude, label = finalname), 
   #           nudge_y = 1.5, color = "#636363", size = 2) +
   coord_map("mercator",xlim = c(-180,180), ylim = c(-60, 65)) +
   GMM_theme 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10.eps", width = 20, height = 12)   
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10.eps", width = 20, height = 12)   
 ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10.pdf", width = 20, height = 12)   
 
 #ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/worldmap.png", width = 20, height = 12)   
@@ -62,34 +62,57 @@ ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10.pdf"
 
 # China ================================================
 GMM_wrapper +
-  GMM_label_top +
+  # GMM_label_top +
   coord_quickmap(xlim = c(100,145), ylim = c(20, 45)) +
   GMM_theme 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_China.eps", width = 10, height = 6)   
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_China.eps", width = 10, height = 6)   
 ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_China.pdf", width = 10, height = 6)   
 
 #ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/China.png", width = 10, height = 6)  
 
+
+
+# China worst performer ---------------------------------------------------
+
+chinamap <- worldmap %>%
+  filter(country == "China") %>%
+  mutate(top_worst = as.factor(ifelse(regionrankglobalmetro2014_2016 > 10, ifelse(regionrankglobalmetro2014_2016 > 92,3,2),1)))
+
+ggplot() +
+  geom_polygon(data = map.world, aes(x = long, y = lat, group = group), fill = "#f0f0f0", color = "white") +
+  geom_point(data = chinamap, aes(x = Longitude, y = Latitude, color = top_worst, size = `2016`), alpha = 0.8) + 
+  geom_text(data = filter(chinamap,top_worst != 2), aes(x = Longitude, y = Latitude, label = metrofinalname), 
+            nudge_y = 0.5, color = "#636363", size = 3) + 
+  scale_size_continuous(labels = scales::comma, name = "Nominal GDP(PPP), 2016") +
+  scale_color_manual(values = c("#b2182b", "#f0f0f0","#2166ac"), 
+                     labels = c("Top 10", "","Bottom 10"), 
+                     name = 'Performance on Economic Index') +
+  coord_quickmap(xlim = c(100,145), ylim = c(20, 45)) +
+  GMM_theme 
+
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/China_blog.png", width = 10, height = 6)   
+
+
 # US ================================================
 GMM_wrapper +
-  GMM_label_top +
+  # GMM_label_top +
   coord_quickmap(xlim = c(-125,-60), ylim = c(18, 53)) +
   GMM_theme 
 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US.eps", width = 10, height = 6)   
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US.eps", width = 10, height = 6)   
 ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US.pdf", width = 10, height = 6)   
 
 #ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/Europe.png", width = 10, height = 6)   
 
 # Europe ================================================
 GMM_wrapper  +
-  GMM_label_top +
+  # GMM_label_top +
   coord_quickmap(xlim = c(-10,22), ylim = c(40, 60)) +
   GMM_theme 
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_EU.eps", width = 10, height = 6)   
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_EU.eps", width = 10, height = 6)   
 ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_EU.pdf", width = 10, height = 6)   
 
 #ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/Europe.png", width = 10, height = 6)   
@@ -102,14 +125,14 @@ ggplot() +
   geom_point(data = MENAmap, aes(x = Longitude, y = Latitude, color = as.factor(pockets_growth2014_2016), size = gdpppp_2016), alpha = 0.8) + 
   scale_size_continuous(labels = scales::comma, name = "Nominal GDP(PPP), 2016") +
   scale_color_manual(values = c("#b2182b", "#2166ac"), labels = c("All others","Pockets of growth"), name = "Growth Status") +
-  geom_text_repel(data = MENAmap, aes(x = Longitude, y = Latitude, label = metro), 
-                  nudge_y = 0.5, color = "#636363", size = 2) +
+  # geom_text_repel(data = MENAmap, aes(x = Longitude, y = Latitude, label = metro), 
+  #                 nudge_y = 0.5, color = "#636363", size = 2) +
   coord_quickmap(xlim = c(-12,62), ylim = c(10, 40)) +
   GMM_theme 
 
 
 # ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/MENA.png", width = 10, height = 6)  
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14.eps", width = 10, height = 6)  
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14.eps", width = 10, height = 6)  
 ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14.pdf", width = 10, height = 6)  
 
 
