@@ -116,3 +116,12 @@ group_summary <- function(dataframe, metro, ...) {
 }
 
 
+# indexed matrix ----------------------------------------------------------
+
+indexed_matrix <- function(df){
+  b <-  which(colnames(df)=="2000")
+  raw <- df[,b:ncol(df)]
+  output <- bind_cols(df[,1:(b-1)],raw/matrix(raw[["2000"]], nrow = nrow(raw), ncol = ncol(raw))*100)
+}
+
+
