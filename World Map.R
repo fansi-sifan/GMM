@@ -72,28 +72,6 @@ ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_Chin
 #ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/China.png", width = 10, height = 6)  
 
 
-
-# China worst performer ---------------------------------------------------
-
-chinamap <- worldmap %>%
-  filter(country == "China") %>%
-  mutate(top_worst = as.factor(ifelse(regionrankglobalmetro2014_2016 > 10, ifelse(regionrankglobalmetro2014_2016 > 93,3,2),1)))
-
-ggplot() +
-  geom_polygon(data = map.world, aes(x = long, y = lat, group = group), fill = "#bdbdbd", color = "white") +
-  geom_point(data = chinamap, aes(x = Longitude, y = Latitude, color = top_worst, size = gdpppp_2016), alpha = 0.8) + 
-  geom_text(data = filter(chinamap,top_worst != 2), aes(x = Longitude, y = Latitude, label = metrofinalname), 
-            nudge_y = 0.5, color = "#636363", size = 3) + 
-  scale_size_continuous(labels = scales::comma, name = "Nominal GDP(PPP), 2016") +
-  scale_color_manual(values = c("#b2182b", "#bdbdbd","#2166ac"), 
-                     labels = c("Top 10", "","Bottom 10"), 
-                     name = 'Performance on Economic Index') +
-  coord_quickmap(xlim = c(100,145), ylim = c(20, 50)) +
-  GMM_theme 
-
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/China_blog.png", width = 10, height = 6)   
-
-
 # US ================================================
 GMM_wrapper +
   # GMM_label_top +
