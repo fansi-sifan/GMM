@@ -49,6 +49,7 @@ head(temp)
 # write to result
 
 
+
 ```
 
 
@@ -69,11 +70,14 @@ wide <- CAGR(wide, "emptot", 2000, 2016)
 wide <- CAGR(wide, "emptot", 2014, 2016)
 wide <- CAGR(wide, "gdppk", 2000, 2016)
 wide <- CAGR(wide, "gdppk", 2014, 2016)
+wide <- CAGR(wide, "poptott", 2000, 2016)
+wide <- CAGR(wide, "poptott", 2014, 2016)
 
 
 head(wide)
 # write.csv(wide, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis/GMM17_World_wide_groups.csv")
 
+save(wide, file = 'master_wide.Rdata')
 ```
 
 # Collapse by groups =====================
