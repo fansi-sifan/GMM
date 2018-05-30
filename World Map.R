@@ -32,7 +32,7 @@ GMM_wrapper <- ggplot() +
   geom_point(data = worldmap %>% filter(istop_q_14_16 == 0), aes(x = Longitude, y = Latitude, color = "#1a9850", size = gdpppp_2016/1000),alpha = 0.8) +
   geom_point(data = worldmap %>% filter(istop_q_14_16 == 1), aes(x = Longitude, y = Latitude, color = "#f46d43", size = gdpppp_2016/1000),alpha = 0.8) +
   scale_size_continuous(labels = scales::comma, name = "Nominal GDP(Blns $, PPP rates), 2016") +
-  scale_color_discrete(name = "Economic performance index (Regional rank)",label = c("All others","Top 20 %"))+
+  scale_color_discrete(name = "Economic performance index (Regional rank)",label = c("All others","Top 20 %"))
   
 
 GMM_label_top <- geom_text(data = filter(worldmap,istop_q_14_16 == 1), aes(x = Longitude, y = Latitude, label = metrofinalname), 
@@ -81,9 +81,9 @@ GMM_wrapper +
 
 
 # ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US_with labels.pdf", width = 10, height = 6)   
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US_no labels.pdf", width = 10, height = 6)   
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_US_no labels.pdf", width = 8, height = 4)   
 
-# Europe ================================================
+  # Europe ================================================
 GMM_wrapper  +
   # GMM_label_top +
   # GMM_label_large +
