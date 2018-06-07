@@ -102,19 +102,31 @@ ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 10_EU_n
 MENAmap <- MENAmap %>% filter(metro != "Jerusalem")
 
 ggplot() +
-  geom_polygon(data = map.world, aes(x = long, y = lat, group = group), fill = "#bdbdbd", color = "white") +
+  geom_polygon(data = map.world, aes(x = long, y = lat, group = group), fill = "#cccccc", color = "white") +
   geom_point(data = MENAmap, aes(x = Longitude, y = Latitude, color = as.factor(pockets_growth2014_2016), size = gdpppp_2016/1000), alpha = 0.8) + 
   scale_size_continuous(labels = scales::comma, name ="Nominal GDP(Blns $, PPP rates), 2016") +
   scale_color_manual(values = c("#b2182b", "#2166ac"), labels = c("All others","Pockets of growth"), name = "Growth Status") +
-  # geom_text_repel(data = MENAmap, aes(x = Longitude, y = Latitude, label = metro),
+  # geom_text_repel(data = MENAmap %>% filter(country!="Morocco"), aes(x = Longitude, y = Latitude, label = metro),
   #                 nudge_y = 0.5, color = "#636363", size = 2) +
   coord_quickmap(xlim = c(-12,62), ylim = c(10, 40)) +
+  geom_rect(data = data.frame(), aes(xmin = -12, xmax = -4, ymin = 30, ymax = 36), color = "red", fill = NA)+
   GMM_theme 
 
 # ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/plots/MENA.png", width = 10, height = 6)  
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14_no labels.pdf", width = 10, height = 6)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14_no labels.pdf", width = 10, height = 6, bg = "transparent")
 ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14_with labels.pdf", width = 10, height = 6)  
 
+
+ggplot() +
+  geom_polygon(data = map.world, aes(x = long, y = lat, group = group), fill = "#cccccc", color = "white") +
+  geom_point(data = MENAmap , aes(x = Longitude, y = Latitude, color = as.factor(pockets_growth2014_2016), size = gdpppp_2016/1000), alpha = 0.8) + 
+  scale_size_continuous(labels = scales::comma, name ="Nominal GDP(Blns $, PPP rates), 2016") +
+  scale_color_manual(values = c("#b2182b", "#2166ac"), labels = c("All others","Pockets of growth"), name = "Growth Status") +
+  # geom_text_repel(data = MENAmap %>% filter(country == "Morocco"), aes(x = Longitude, y = Latitude, label = metro),size = 2) +
+  coord_quickmap(xlim = c(-12,-4), ylim = c(30, 36)) +
+  GMM_theme 
+
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 14_inset.pdf", width = 5, height = 3)
 
 # Slide map ---------------------------------------------------------------
 
