@@ -23,31 +23,31 @@ source("Func.R")
 China_wide <- wide %>% 
   filter(country == "China") %>%
   filter(ismetro == 1) 
+
 summary(China_wide)
 
 features <- China_wide %>% 
   select(metro,contains("2016")) %>%
-  left_join(ChinaInd, by = c("metro" = "name_EN")) %>%
-  select(metro, contains("2016"), ind_city, sev_city) %>%
-  select(-gdpusc_2016)
+  left_join(China_ind_share %>% filter(isurban == "total"), by = c("metro" = "name_EN")) %>%
+  select(-gdpusc_2016, -ismetro, -isurban)
 
 # scale
-log_features = cbind(log(features[,2:5]),log(features[,6:13]+1))
-log_features = cbind(log_features, log(features[,14:15]))
-
-scatterplotMatrix(log_features)
-str(log_features)
+# log_features = cbind(log(features[,2:5]),log(features[,6:13]+1))
+# log_features = cbind(log_features, log(features[,14:32]*100+0.0001))
+# 
+# # scatterplotMatrix(log_features)
+# str(log_features)
 # PCA ---------------------------------------------------------------------
 
-data_res = log_features
+data_res = features[c(-1)]
 
-pca.vis <- prcomp(data_res,center = TRUE, scale. = TRUE)
+pca.vis <- prcomp(na.omit(data_res),center = TRUE, scale. = TRUE)
 plot(pca.vis, type = "lines")
 summary(pca.vis)
-pca.vis
 
-log_features.pca <- preProcess(data_res, method = c("pca"))
-PC <- predict(log_features.pca, data_res)
+
+features.pca <- preProcess(data_res, method = c("pca"))
+PC <- predict(features.pca, data_res)
 
 
 
@@ -76,7 +76,7 @@ features$cat <- as.factor(clusters$cluster)
 
 # hierachical clustering --------------------------------------------------
 
-n_cluster_h <- 3
+n_cluster_h <- 5
 
 h_clusters <- hclust(dist.PC,method = h_method)
 plot(h_clusters)
