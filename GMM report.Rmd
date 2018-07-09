@@ -4,14 +4,11 @@ author: "Sifan Liu"
 date: "2018/3/13"
 output: html_document
 ---
+
+
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-# Author: Sifan Liu
-# Date: Mon Apr 16 10:21:53 2018
-# --------------
-
-
-pkgs <- c('tidyr','dplyr', 'ggplot2', 'scales')
+pkgs <- c('knitr','tidyr','dplyr', 'ggplot2', 'scales')
 
 check <- sapply(pkgs,require,warn.conflicts = TRUE,character.only = TRUE)
 if(any(!check)){
@@ -20,6 +17,7 @@ if(any(!check)){
     check <- sapply(pkgs.missing,require,warn.conflicts = TRUE,character.only = TRUE)
 } 
 
+knitr::opts_chunk$set(echo = TRUE)
 source('Load.R')
 source('Func.R', local = TRUE)
 load("master.Rdata")
@@ -77,41 +75,58 @@ wide <- CAGR(wide, "poptott", 2014, 2016)
 head(wide)
 # write.csv(wide, "V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis/GMM17_World_wide_groups.csv")
 
-save(wide, file = 'master_wide.Rdata')
+# save(wide, file = 'master_wide.Rdata')
+```
+```{r keep the largest city in each country}
+
+# outlier <- c("Hong Kong", "Luxembourg", "Macau", "Singapore")
+# 
+# top_city <- wide %>%
+#   group_by(country) %>%
+#   top_n(2,wt = gdpusc_2016) %>%
+#   mutate(cstate = ifelse(country%in%outlier, 1,0))
+# 
+# top_city_summary <- top_city %>% 
+#   select(-contains('CAGR'), - contains("gdppk"))%>%
+#   group_by(ismetro, region_adj, income_adj) %>%
+#   summarise_if(is.numeric, sum) 
+# 
+# 
+# write.csv(top_city, "results/top_city.csv")
 ```
 
 # Collapse by groups =====================
 
 ```{r test world without China}
 
-GMM17$China <- ifelse(GMM17$country == "China",1,0)
-test <- rbind(group_summary(GMM17, 1, "China"), group_summary(GMM17, 1))
-test <- test %>%
-  GDPPK()%>%
-  CAGR("gdpusc", 2014, 2016) %>%
-  CAGR("gdppk", 2014, 2016) %>%
-  CAGR("emptot", 2014, 2016) %>%
-  CAGR("poptott", 2014, 2016) %>%
-  VG("gdpusc", 2014, 2016)%>%
-  VG("emptot", 2014, 2016)%>%
-  VG("poptott", 2014, 2016)%>%
-  select(China,contains("CAGR"), ends_with("2016"))
-
-world <- temp %>%
-  filter(ismetro != 1) %>%
-  filter(country == "World"|country == "China") %>%
-  bind_rows(.[2,-c(1:6)]-.[1,-c(1:6)]) %>%
-  GDPPK() %>%
-  CAGR("gdpusc", 2014, 2016) %>%
-  CAGR("gdppk", 2014, 2016) %>%
-  CAGR("emptot", 2014, 2016) %>%
-  CAGR("poptott", 2014, 2016) %>%
-  VG("gdpusc", 2014, 2016)%>%
-  VG("emptot", 2014, 2016)%>%
-  VG("poptott", 2014, 2016)%>%
-  select(country,contains("CAGR"),ends_with("2016"))
-
-bind_rows(test, world)[c(3),c(6:13)]/bind_rows(test, world)[c(5),c(6:13)]
+# GMM17$China <- ifelse(GMM17$country == "China",1,0)
+# test <- rbind(group_summary(GMM17, 1, "China"), group_summary(GMM17, 1))
+# test <- test %>%
+#   GDPPK()%>%
+#   CAGR("gdpusc", 2014, 2016) %>%
+#   CAGR("gdppk", 2014, 2016) %>%
+#   CAGR("emptot", 2014, 2016) %>%
+#   CAGR("poptott", 2014, 2016) %>%
+#   VG("gdpusc", 2014, 2016)%>%
+#   VG("emptot", 2014, 2016)%>%
+#   VG("poptott", 2014, 2016)%>%
+#   select(China,contains("CAGR"), ends_with("2016"))
+# 
+# world <- temp %>%
+#   filter(ismetro != 1) %>%
+#   filter(country == "World"|country == "China") %>%
+#   bind_rows(.[2,-c(1:6)]-.[1,-c(1:6)]) %>%
+#   GDPPK() %>%
+#   CAGR("gdpusc", 2014, 2016) %>%
+#   CAGR("gdppk", 2014, 2016) %>%
+#   CAGR("emptot", 2014, 2016) %>%
+#   CAGR("poptott", 2014, 2016) %>%
+#   VG("gdpusc", 2014, 2016)%>%
+#   VG("emptot", 2014, 2016)%>%
+#   VG("poptott", 2014, 2016)%>%
+#   select(country,contains("CAGR"),ends_with("2016"))
+# 
+# bind_rows(test, world)[c(3),c(6:13)]/bind_rows(test, world)[c(5),c(6:13)]
   
 ```
 
@@ -133,9 +148,9 @@ names(city_sub) <- names(country) <- names(city) <- groups
 
 ```{r GDP per capita gap between income and metro/rest}
 
-gap_GDPPK <- rbind(city$income_adj,city_sub$income_adj) %>%
-  GDPPK() %>%
-  select(income_adj, ismetro,gdppk_2016)
+# gap_GDPPK <- rbind(city$income_adj,city_sub$income_adj) %>%
+#   GDPPK() %>%
+#   select(income_adj, ismetro,gdppk_2016)
 
 
 ```
@@ -194,12 +209,12 @@ names(list) <- groups
 ## Save output
 
 ```{r save, include=FALSE}
-
-setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis")
 # 
-lapply(1:5, function(x)write.csv(Short[x], file = paste0("Short.", names(Short[x]), ".csv")))
-# lapply(1:5, function(x)write.csv(Med[x], file = paste0("Med_", names(Med[x]), ".csv")))
-lapply(1:5, function(x)write.csv(Long[x], file = paste0("Long.", names(Long[x]), ".csv")))
+# setwd("V:/MetroMonitor/Global Monitor/Global Monitor V/Data/04132018/data for analysis")
+# # 
+# lapply(1:5, function(x)write.csv(Short[x], file = paste0("Short.", names(Short[x]), ".csv")))
+# # lapply(1:5, function(x)write.csv(Med[x], file = paste0("Med_", names(Med[x]), ".csv")))
+# lapply(1:5, function(x)write.csv(Long[x], file = paste0("Long.", names(Long[x]), ".csv")))
 
 
 ```
@@ -342,22 +357,25 @@ vis_adj$year <- as.integer(vis_adj$year)
 ```
 
 
-```{r YOY of emp and GDPPK}
+```{r YOY of emp and GDPPK on the same chart}
 vis_adj <- filter(vis_adj, year != 2017)
 line_theme <- theme(legend.justification = c(1,0),
         legend.position = c(1,0), 
         panel.grid = element_blank(),
         panel.background = element_blank())
 
-ggplot(filter(vis_adj, variable == "emptot"),aes(x = year, y = value, color = Type)) +
+ggplot(filter(vis_adj, variable == "emptot"| variable == "gdppk"),aes(x = year, y = value, color = Type, linetype = variable)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
   facet_wrap(~ region_adj, scales = "free") +
   ylab(label = "Indexed employment, (2000 = 100)")+
   geom_line()+
   line_theme%+%theme(strip.background = element_blank())
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 6.pdf", width = 8, height = 6)
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 6.eps", width = 8, height = 6)
+ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/test.png", width = 8, height = 6)
+
+```
+
+```{r individual plots}
 
 ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 95,ymax = Inf,alpha = 0.1) +
@@ -365,10 +383,17 @@ ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Typ
   ylab(label = "Indexed GDP per capita, (2000 = 100)")+
   geom_line()+
   line_theme%+%theme(strip.background = element_blank())
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 7.pdf", width = 8, height = 6)
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 7.eps", width = 8, height = 6)
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 7.pdf", width = 8, height = 6)
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 7.eps", width = 8, height = 6)
+
+# change "gdppk" tp "emptot" above ====
+
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 6.pdf", width = 8, height = 6)
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/Fig 6.eps", width = 8, height = 6)
+
 
 ```
+
 
 ```{r}
 

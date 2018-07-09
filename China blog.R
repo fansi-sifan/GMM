@@ -128,10 +128,7 @@ ggplot(data = data_share, aes(x = year, y = value, fill = modified, position = "
   theme_classic()
 
 # map ---------------------------------------------------------------------
-China_coord <- worldmap %>%
-  filter(country =="China") %>%
-  select(metro, gdpppp_2016, Latitude, Longitude, metrofinalname, regionrankglobalmetro2014_2016) %>%
-  left_join(GCItype, by = "metro")
+
 
 
 pkgs <- c('ggmap', "ggrepel", "ggalt")
@@ -142,6 +139,11 @@ if(any(!check)){
   install.packages(pkgs.missing)
   check <- sapply(pkgs.missing,require,warn.conflicts = TRUE,character.only = TRUE)
 } 
+
+China_coord <- worldmap %>%
+  filter(country =="China") %>%
+  select(metro, gdpppp_2016, Latitude, Longitude, metrofinalname, regionrankglobalmetro2014_2016) %>%
+  left_join(GCItype, by = "metro")
 
 map.China <- map_data("world") %>% filter(region %in% c("China","Taiwan"))
 
@@ -155,14 +157,15 @@ GMM_theme <- theme(panel.background = element_blank(),
 ggplot() +
   geom_polygon(data = map.China , aes(x = long, y = lat, group = group), fill = "#cccccc", color = "white") +
   GMM_theme
+ggsave("results/fig5_inset.pdf", width = 12, height = 9)
 
 ggplot() +
   geom_polygon(data = map.China , aes(x = long, y = lat, group = group), fill = "#cccccc", color = "white") +
   geom_point(data = China_coord, aes(x = Longitude, y = Latitude, color = cat_1, size = gdpppp_2016/1000), alpha = 0.5) + 
   # geom_text_repel(data = filter( China_coord, gdpppp_2016 >= median(gdpppp_2016)), 
   #                 aes(x = Longitude, y = Latitude, label = metrofinalname), size = 3)+
-  geom_text_repel(data = filter(China_coord, Capital == 1),
-                  aes(x = Longitude, y = Latitude, label = metrofinalname), color = "#636363", size = 4) +
+  # geom_text_repel(data = filter(China_coord, Capital == 1),
+  #                 aes(x = Longitude, y = Latitude, label = metrofinalname), color = "#636363", size = 4) +
   scale_size_continuous(range = c(1,8),
                         labels = scales::comma, name = "Nominal GDP(Blns $, PPP rates), 2016" ) +
   scale_color_discrete(name = "Five types of Chinese metros") +
@@ -170,6 +173,9 @@ ggplot() +
   GMM_theme %+%
   theme(legend.position = c(0.2,0.2),
         legend.key = element_rect(colour = NA, fill = NA))
+
+ggsave("results/fig2.pdf", width = 12, height = 9)
+ggsave("results/fig2_blank.pdf", width = 12, height = 9)
 
 
 # pearl delta
@@ -179,9 +185,9 @@ ggplot() +
   geom_point(data = China_coord, aes(x = Longitude, y = Latitude, color = cat_1, size = gdpppp_2016/1000), alpha = 0.8) + 
   # geom_text_repel(data = filter( China_coord, gdpppp_2016 >= median(gdpppp_2016)), 
   #                 aes(x = Longitude, y = Latitude, label = metrofinalname), size = 3)+
-  geom_text(data = China_coord,
-                  aes(x = Longitude, y = Latitude, label = paste0(metrofinalname,"(",regionrankglobalmetro2014_2016,")")), 
-            color = "#636363", size = 4, nudge_y = 0.05) +
+  # geom_text(data = China_coord,
+  #                 aes(x = Longitude, y = Latitude, label = paste0(metrofinalname,"(",regionrankglobalmetro2014_2016,")")), 
+  #           color = "#636363", size = 4, nudge_y = 0.05) +
   scale_size_continuous(range = c(1,8),
                         labels = scales::comma, name = "Nominal GDP(Blns $, PPP rates), 2016" ) +
   scale_color_discrete(name = "Five types of Chinese metros") +
@@ -190,6 +196,8 @@ ggplot() +
   theme(legend.position = c(0.2,0.2),
         legend.key = element_rect(colour = NA, fill = NA))
 
+ggsave("results/fig5.pdf", width = 12, height = 9)
+ggsave("results/fig5_blank.pdf", width = 12, height = 9)
 # rank --------------------------------------------------------------------
 
 ggplot(China_coord, aes(cat_1, regionrankglobalmetro2014_2016, color = cat_1, size = gdpppp_2016/1000))+
@@ -200,5 +208,8 @@ ggplot(China_coord, aes(cat_1, regionrankglobalmetro2014_2016, color = cat_1, si
   scale_size_continuous(labels = scales::comma, name = "2016 Nominal GDP \n(Blns $, PPP rates)") +
   geom_jitter(width = 0.1)+
   theme_classic()
+
+ggsave("results/fig3.pdf", width = 12, height = 6)
+
 
 China_coord %>% group_by(cat_1) %>% summarise(avg = mean(regionrankglobalmetro2014_2016))

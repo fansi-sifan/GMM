@@ -4,3 +4,6 @@
 .Ruserdata
 .csv
 .xlsx
+Thumbs.db
+/source
+/results
