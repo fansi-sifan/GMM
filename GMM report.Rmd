@@ -343,10 +343,10 @@ ggplot(GDPPK_ratio, aes(GDPPK_ratio_country, fill = GDPPK_country_better)) +
 vis <- rbind(city$region_adj, city_sub$region_adj)
 vis$Type <- ifelse(vis$ismetro == -1,"Rest of the region", "Large metros")
 vis <- vis %>% GDPPK() %>%
-  select(region_adj, Type, contains("gdppk"),contains("emptot"))%>%
-  gather(Region, var, gdppk_2000:emptot_2017) %>%
-  separate(Region,c("variable","year"), sep = "_") %>%
-  spread(year, var)
+  select(region_adj, Type, contains("gdpp"),contains("emptot"))%>%
+  gather(var, value, gdpppp_2000:emptot_2017) %>%
+  separate(var,c("variable","year"), sep = "_") %>%
+  spread(year, value)
 
 vis_raw <- vis[,4:21]
 vis_adj <- cbind(vis[,1:3],(vis_raw/matrix(vis[["2000"]], nrow = nrow(vis_raw), ncol = ncol(vis_raw)))*100)
@@ -364,20 +364,20 @@ line_theme <- theme(legend.justification = c(1,0),
         panel.grid = element_blank(),
         panel.background = element_blank())
 
-ggplot(filter(vis_adj, variable == "emptot"| variable == "gdppk"),aes(x = year, y = value, color = Type, linetype = variable)) +
+ggplot(filter(vis_adj, variable == "gdpppp"| variable == "gdppk"),aes(x = year, y = value, color = Type, linetype = variable)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 90,ymax = Inf,alpha = 0.1) +
   facet_wrap(~ region_adj, scales = "free") +
   ylab(label = "Indexed employment, (2000 = 100)")+
   geom_line()+
   line_theme%+%theme(strip.background = element_blank())
 
-ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/test.png", width = 8, height = 6)
+# ggsave("V:/MetroMonitor/Global Monitor/Global Monitor V/Draft/charts/test.png", width = 8, height = 6)
 
 ```
 
 ```{r individual plots}
 
-ggplot(filter(vis_adj, variable == "gdppk"),aes(x = year, y = value, color = Type)) +
+ggplot(filter(vis_adj, variable == "gdpppp"),aes(x = year, y = value, color = Type)) +
   annotate("rect", xmin = 2014,xmax = 2016, ymin = 95,ymax = Inf,alpha = 0.1) +
   facet_wrap(~ region_adj, scales = "free") +
   ylab(label = "Indexed GDP per capita, (2000 = 100)")+
